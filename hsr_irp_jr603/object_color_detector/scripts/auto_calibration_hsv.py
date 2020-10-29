@@ -27,7 +27,7 @@ from object_color_detector.srv import *
 from sklearn.linear_model import LinearRegression
 
 # 定义标定位姿点
-calibration_points_z = 0.2 #0.07
+calibration_points_z = 1 #0.2
 calibration_points = []
 calibration_points.append(Point(0.30, 0,    calibration_points_z))
 calibration_points.append(Point(0.30, 0.1,  calibration_points_z))
@@ -36,8 +36,8 @@ calibration_points.append(Point(0.40, -0.1,  calibration_points_z))
 calibration_points.append(Point(0.40, 0,    calibration_points_z))
 
 # 定义拍照位姿
-capture_point = Point(0.308, 0, 0.435)
-capture_quaternion = Quaternion(0, 0, -0.2505, 0.9681) #Quaternion(0, 0, 0, 1)
+capture_point = Point(0.308, 0, 1)
+capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) #Quaternion(0, 0, 0, 1)
 
 # 初始化move_group的API
 moveit_commander.roscpp_initialize(sys.argv)
@@ -46,14 +46,11 @@ moveit_commander.roscpp_initialize(sys.argv)
 rospy.init_node('auto_calibration')
         
 # 初始化需要使用move group控制的机械臂中的arm group
-arm = moveit_commander.MoveGroupCommander('manipulator')
-        
-# 获取终端link的名称
-end_effector_link = arm.get_end_effector_link()
-print(end_effector_link)
-                
+scene = moveit_commander.PlanningSceneInterface()
+arm = moveit_commander.MoveGroupCommander('arm')
+reference_frame = 'world'
+
 # 设置目标位置所使用的参考坐标系
-reference_frame = 'base_link'
 arm.set_pose_reference_frame(reference_frame)
         
 # 当运动规划失败后，允许重新规划
@@ -62,6 +59,42 @@ arm.allow_replanning(True)
 # 设置位置(单位：米)和姿态（单位：弧度）的允许误差
 arm.set_goal_position_tolerance(0.0001)
 arm.set_goal_orientation_tolerance(0.0001)
+
+#############添加水平障碍############
+rospy.sleep(1)
+base_table_id = 'base_table'
+scene.remove_world_object(base_table_id)
+base_table_size = [3, 3, 0.01]
+base_table_pose = PoseStamped()
+base_table_pose.header.frame_id = reference_frame
+base_table_pose.pose.position.x = 0.0
+base_table_pose.pose.position.y = 0.0
+base_table_pose.pose.position.z = 0.7#高度
+base_table_pose.pose.orientation.w = 1.0
+scene.add_box(base_table_id, base_table_pose, base_table_size)
+rospy.sleep(1)
+
+##############添加后侧障碍#############
+backward_wall_id = 'backward_wall'
+scene.remove_world_object(backward_wall_id)
+backward_wall_size = [0.01, 3, 3]
+backward_wall_pose = PoseStamped()
+backward_wall_pose.header.frame_id = reference_frame
+backward_wall_pose.pose.position.x = -0.3
+backward_wall_pose.pose.position.y = 0.0
+backward_wall_pose.pose.position.z = 0.4
+backward_wall_pose.pose.orientation.w = 1.0
+scene.add_box(backward_wall_id, backward_wall_pose, backward_wall_size)
+rospy.sleep(1)
+
+
+
+
+
+# 获取终端link的名称
+end_effector_link = arm.get_end_effector_link()
+print(end_effector_link)
+                
 
 # 控制机械臂先回到初始化位置
 arm.set_named_target('home')

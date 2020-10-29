@@ -419,13 +419,13 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-6.283185307179"
-      upper="6.283185307179"
+      lower="-3.141593"
+      upper="3.141593"
       effort="28"
       velocity="3.2" />
     <safety_controller
-      soft_upper_limit="6.283185307179"
-      soft_lower_limit="0"
+      soft_upper_limit="3.141593"
+      soft_lower_limit="-3.141593"
       k_position="0"
       k_velocity="1.6" />
   </joint>
