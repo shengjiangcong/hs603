@@ -12,25 +12,20 @@ from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 from object_color_detector.srv import *
-from hsr_rosi_device.srv import *
 
-redStore   = [0.232, -0.339]
-greenStore = [0.232, -0.339]
+redStore   = [0.3154, -0.2254]
+greenStore = [0.3154, -0.3808]
 blueStore  = [0.1391, -0.2254]
 
-capture_point = Point(0.38876, 0, 1.17)
+capture_point = Point(0.28, 0, 1.23)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
-capture_joint = [0, -1.208, 2.93, 0, 1.419, 0]
-green_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
-red_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
-blue_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
 
-pick_red_height   = 0.845
-pick_green_height = 0.815
-pick_blue_height  = 0.815
-pick_prepare_height = 0.92
+pick_red_height   = 0.8
+pick_green_height = 0.8
+pick_blue_height  = 0.8
+pick_prepare_height = 1
 
-place_prepare_height = 0.9
+place_prepare_height = 1
 
 red_count   = 0
 green_count = 0
@@ -66,7 +61,7 @@ class ProbotSortingDemo:
         base_table_pose.header.frame_id = self.reference_frame
         base_table_pose.pose.position.x = 0.0
         base_table_pose.pose.position.y = 0.0
-        base_table_pose.pose.position.z = 0.8#高度
+        base_table_pose.pose.position.z = 0.7#高度
         base_table_pose.pose.orientation.w = 1.0
         self.scene.add_box(base_table_id, base_table_pose, base_table_size)
         rospy.sleep(1)
@@ -123,8 +118,6 @@ class ProbotSortingDemo:
             print "Pick Once"
             self.moveTo(x, y, z)
             
-            self.io_control(True)
-            
             rospy.sleep(1)
             self.moveTo(x, y, pick_prepare_height)
             
@@ -138,40 +131,19 @@ class ProbotSortingDemo:
             print "Place Once"
             self.moveTo(x, y, z)
 
+            rospy.sleep(1)
             self.moveTo(x, y, place_prepare_height)
 
         else:
             print "Can not place"
 
-    def moveJoint(self, value):
+    def moveSingleJoint(self, index, value):
         group_variable_values = self.arm.get_current_joint_values()
-        group_variable_values[0] = value[0]
-        group_variable_values[1] = value[1]
-        group_variable_values[2] = value[2]
-        group_variable_values[3] = value[3]
-        group_variable_values[4] = value[4]
-        group_variable_values[5] = value[5]
+        group_variable_values[index] = value
         print group_variable_values
         self.arm.set_joint_value_target(group_variable_values)
         traj = self.arm.plan()
         self.arm.execute(traj)
-        rospy.sleep(1)
-        self.io_control(False)
-
-    def io_control(self, value):
-        rospy.wait_for_service('/set_robot_io')
-        try:
-            a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
-            resp = a(1, value, False)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
-        rospy.sleep(1)
-        try:
-            a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
-            resp = a(2, value, False)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
-        rospy.sleep(1)
 
     def shutdown(self):
         # Exit
@@ -184,58 +156,12 @@ if __name__ == "__main__":
     time.sleep(3)
 
     rospy.init_node('probot_vision_sorting_demo')
-    rate = rospy.Rate(10)
 
-    reg_x = rospy.get_param('/image/reg_x')
-    reg_y = rospy.get_param('/image/reg_y')
-
-    print "Probot sorting demo start."
     demo = ProbotSortingDemo()
-   # demo.moveJoint(red_place)
-    #demo.shutdown()
-    while not rospy.is_shutdown():
-        # 相机拍照位置
-        demo.moveJoint(capture_joint)
-
-        # Get target
-        rospy.wait_for_service('/object_detect')
-        try:
-            detect_object_service = rospy.ServiceProxy('/object_detect', DetectObjectSrv)
-            response = detect_object_service(DetectObjectSrvRequest.ALL_OBJECT) 
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
-
-        if response.result is not DetectObjectSrvResponse.SUCCESS:
-            rospy.loginfo("No objects detected, waiting detecting...")
-            rate.sleep()
-            continue
-        
-        rospy.loginfo("Get object position, Start pick and place.")
-
-        # Pick and place bject
-        if len(response.redObjList):
-            x_value = response.redObjList[0].position.y * reg_x[0] + reg_x[1]
-            y_value = response.redObjList[0].position.x * reg_y[0] + reg_y[1]
-            print "Pick Position: %f, %f"%(x_value, y_value)
-            if demo.pick(x_value,  y_value, pick_red_height) == True:
-                demo.moveJoint(red_place)
-                #red_count = red_count + 1
-        elif len(response.greenObjList):
-            x_value = response.greenObjList[0].position.y * reg_x[0] + reg_x[1]
-            y_value = response.greenObjList[0].position.x * reg_y[0] + reg_y[1]
-            print "Pick Position: %f, %f"%(x_value, y_value)
-            if demo.pick(x_value,  y_value, pick_green_height) == True:
-                demo.moveJoint(green_place)
-                #green_count = green_count + 1
-        elif len(response.blueObjList):
-            x_value = response.blueObjList[0].position.y * reg_x[0] + reg_x[1]
-            y_value = response.blueObjList[0].position.x * reg_y[0] + reg_y[1]
-            print "Pick Position: %f, %f"%(x_value, y_value)
-            if demo.pick(x_value,  y_value, pick_blue_height) == True:
-                demo.moveJoint(blue_place)
-                #blue_count = blue_count + 1
-
-        rate.sleep()
-
     demo.moveToHome()   
+    #demo.moveTo(capture_point.x, capture_point.y, capture_point.z)
+    demo.moveSingleJoint(1, -0.3)
+    
+
+    #demo.moveToHome()   
     demo.shutdown()

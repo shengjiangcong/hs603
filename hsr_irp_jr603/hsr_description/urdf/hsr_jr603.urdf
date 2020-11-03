@@ -104,13 +104,13 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-3.1415"
-      upper="3.1415"
+      lower="-2.93"
+      upper="2.93"
       effort="28"
       velocity="3.2" />
     <safety_controller
-      soft_upper_limit="3.4819"
-      soft_lower_limit="-3.4819"
+      soft_upper_limit="2.93"
+      soft_lower_limit="-2.93"
       k_position="0"
       k_velocity="1.6" />
   </joint>
@@ -168,11 +168,11 @@
       xyz="0 0 1" />
     <limit
       lower="-2.7038"
-      upper="0.08722"
+      upper="0"
       effort="28"
       velocity="3.2" />
     <safety_controller
-      soft_upper_limit="-0.07853"
+      soft_upper_limit="0"
       soft_lower_limit="-2.60926"
       k_position="0"
       k_velocity="1.6" />
@@ -230,13 +230,13 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-0.349"
-      upper="4.1015"
+      lower="-0.14"
+      upper="4.1"
       effort="28"
       velocity="3.2" />
     <safety_controller
-      soft_upper_limit="4.0927"
-      soft_lower_limit="-0.34034"
+      soft_upper_limit="4.1"
+      soft_lower_limit="-0.14"
       k_position="0"
       k_velocity="1.6" />
   </joint>
@@ -293,13 +293,13 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-3.124139"
-      upper="3.124139"
+      lower="-2.72"
+      upper="2.72"
       effort="28"
       velocity="3.2" />
     <safety_controller
-      soft_upper_limit="3.124139"
-      soft_lower_limit="-3.124139"
+      soft_upper_limit="2.72"
+      soft_lower_limit="-2.72"
       k_position="0"
       k_velocity="1.6" />
   </joint>
@@ -361,8 +361,8 @@
       effort="28"
       velocity="3.2" />
     <safety_controller
-      soft_upper_limit="1.666789435654"
-      soft_lower_limit="-1.562069680534"
+      soft_upper_limit="1.6580"
+      soft_lower_limit="-1.6580"
       k_position="0"
       k_velocity="1.6" />
   </joint>

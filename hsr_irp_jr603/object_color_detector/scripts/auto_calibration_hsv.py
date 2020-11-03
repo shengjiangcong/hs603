@@ -27,16 +27,16 @@ from object_color_detector.srv import *
 from sklearn.linear_model import LinearRegression
 
 # 定义标定位姿点
-calibration_points_z = 1 #0.2
+calibration_points_z = 0.776 #0.2
 calibration_points = []
 calibration_points.append(Point(0.30, 0,    calibration_points_z))
 calibration_points.append(Point(0.30, 0.1,  calibration_points_z))
-calibration_points.append(Point(0.40, 0.1, calibration_points_z))
-calibration_points.append(Point(0.40, -0.1,  calibration_points_z))
-calibration_points.append(Point(0.40, 0,    calibration_points_z))
+calibration_points.append(Point(0.35, 0.1, calibration_points_z))
+calibration_points.append(Point(0.35, -0.1,  calibration_points_z))
+calibration_points.append(Point(0.30, -0.1,    calibration_points_z))
 
 # 定义拍照位姿
-capture_point = Point(0.308, 0, 1)
+capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) #Quaternion(0, 0, 0, 1)
 
 # 初始化move_group的API
@@ -171,7 +171,7 @@ for point in calibration_points:
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
         
-        regObjList = response.blueObjList
+        regObjList = response.redObjList
         rospy.loginfo("Detect red object over" )
     except rospy.ROSException:
         rospy.loginfo("Timeout waiting for image data.")
