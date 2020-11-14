@@ -128,7 +128,7 @@ class ProbotSortingDemo:
             print "Pick Once"
             self.moveTo(x, y, z)
             
-            self.io_control(True)
+            #self.io_control(True)
             
             rospy.sleep(1)
             self.moveTo(x, y, pick_prepare_height)
@@ -161,7 +161,7 @@ class ProbotSortingDemo:
         traj = self.arm.plan()
         self.arm.execute(traj)
         rospy.sleep(1)
-        self.io_control(False)
+        #self.io_control(False)
 
     def io_control(self, value):
         rospy.wait_for_service('/set_robot_io')

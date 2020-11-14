@@ -26,7 +26,7 @@ struct HSV
     int hmin = 35;
     int hmax = 60;
 
-    int smin = 90;
+    int smin = 70;
     int smax = 255;
 
     int vmin = 60;

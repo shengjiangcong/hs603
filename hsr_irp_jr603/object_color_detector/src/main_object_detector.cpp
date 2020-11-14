@@ -13,7 +13,7 @@ image_transport::Publisher image_pub_;
 probot::vision::ObjectDetector objectDetector_;
 
 //初始化h参数
-probot::vision::HSV hsv_object[3];
+probot::vision::HSV hsv_object[4];
 
 int ROI_x, ROI_y, ROI_wdith, ROI_height;
 
@@ -103,7 +103,22 @@ bool detectCallback(object_color_detector::DetectObjectSrv::Request  &req,
              targetPose.position.y = box.at(box2draw).y + cvRound(box.at(box2draw).height/2) + ROI_y;
              res.blueObjList.push_back(targetPose);
         }
-    }    
+    }
+
+    //黑色
+    objectDetector_.detection(image2hsv, hsv_object[object_color_detector::DetectObjectSrvRequest::BLACK_OBJECT], &box);
+    //遍历box中所有的Rect，标记检测出来的目标
+    if(!box.empty())
+    {
+        for(; box2draw<box.size(); box2draw++)
+        {
+             rectangle(img_input, box.at(box2draw), hsv_object[object_color_detector::DetectObjectSrvRequest::BLACK_OBJECT].color);
+             geometry_msgs::Pose targetPose;
+             targetPose.position.x = box.at(box2draw).x + cvRound(box.at(box2draw).width/2)  + ROI_x;
+             targetPose.position.y = box.at(box2draw).y + cvRound(box.at(box2draw).height/2) + ROI_y;
+             res.blackObjList.push_back(targetPose);
+        }
+    }     
 
     //cv::imshow("result", img_input);
     //cv::waitKey(100);
@@ -121,21 +136,41 @@ int main(int argc, char **argv)
 
     nh.param("red/hmin", hsv_object[0].hmin, 0);
     nh.param("red/hmax", hsv_object[0].hmax, 40);
+    nh.param("red/smin", hsv_object[0].smin, 0);
+    nh.param("red/smax", hsv_object[0].smax, 40);
+    nh.param("red/vmin", hsv_object[0].vmin, 0);
+    nh.param("red/vmax", hsv_object[0].vmax, 40);
 
     nh.param("green/hmin", hsv_object[1].hmin, 60);
     nh.param("green/hmax", hsv_object[1].hmax, 140);
+    nh.param("green/smin", hsv_object[1].smin, 0);
+    nh.param("green/smax", hsv_object[1].smax, 40);
+    nh.param("green/vmin", hsv_object[1].vmin, 0);
+    nh.param("green/vmax", hsv_object[1].vmax, 40);
 
     nh.param("blue/hmin", hsv_object[2].hmin, 160);
     nh.param("blue/hmax", hsv_object[2].hmax, 230);
+    nh.param("blue/smin", hsv_object[2].smin, 0);
+    nh.param("blue/smax", hsv_object[2].smax, 40);
+    nh.param("blue/vmin", hsv_object[2].vmin, 0);
+    nh.param("blue/vmax", hsv_object[2].vmax, 40);
+
+    nh.param("black/hmin", hsv_object[3].hmin, 160);
+    nh.param("black/hmax", hsv_object[3].hmax, 230);
+    nh.param("black/smin", hsv_object[3].smin, 0);
+    nh.param("black/smax", hsv_object[3].smax, 40);
+    nh.param("black/vmin", hsv_object[3].vmin, 0);
+    nh.param("black/vmax", hsv_object[3].vmax, 40);
 
     nh.param("image/ROI_x", ROI_x, 200);
     nh.param("image/ROI_y", ROI_y, 100);
     nh.param("image/ROI_wdith", ROI_wdith, 600);
     nh.param("image/ROI_height", ROI_height, 300);
-
+//框的颜色
     hsv_object[0].color = cv::Scalar(0, 0, 255);
     hsv_object[1].color = cv::Scalar(0, 255, 0);
     hsv_object[2].color = cv::Scalar(255, 0, 0);
+    hsv_object[3].color = cv::Scalar(0, 0, 0);
 
     //image_transport::Subscriber image_sub = it_.subscribe("/usb_cam/image_raw", 1, &imageCb);
     ros::ServiceServer service = nh.advertiseService("/object_detect", detectCallback);

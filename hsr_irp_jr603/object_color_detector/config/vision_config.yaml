@@ -1,5 +1,5 @@
-blue: {hmax: 291, hmin: 246}
-green: {hmax: 158, hmin: 120}
+blue: {hmax: 230, hmin: 162, smax: 255, smin: 70, vmax: 250, vmin: 60}
+green: {hmax: 105, hmin: 57, smax: 255, smin: 173, vmax: 250, vmin: 0 }
 image:
   ROI_height: 480
   ROI_wdith: 640
@@ -7,4 +7,5 @@ image:
   ROI_y: 0
   reg_x: [0.0007413144500995795, 0.11628678911263549]
   reg_y: [0.0008080207898035937, -0.30640148349352275]
-red: {hmax: 20, hmin: 0}
+red: {hmax: 20, hmin: 0, smax: 255, smin: 130, vmax: 250, vmin: 60}
+black: {hmax: 345, hmin: 247, smax: 141, smin: 53, vmax: 250, vmin: 60}
