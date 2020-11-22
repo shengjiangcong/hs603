@@ -27,17 +27,20 @@ from object_color_detector.srv import *
 from sklearn.linear_model import LinearRegression
 
 # 定义标定位姿点
-calibration_points_z = 0.776 #0.2
+calibration_points_z = 0.915 #0.2
 calibration_points = []
-calibration_points.append(Point(0.30, 0,    calibration_points_z))
-calibration_points.append(Point(0.30, 0.1,  calibration_points_z))
-calibration_points.append(Point(0.35, 0.1, calibration_points_z))
-calibration_points.append(Point(0.35, -0.1,  calibration_points_z))
-calibration_points.append(Point(0.30, -0.1,    calibration_points_z))
+calibration_points.append(Point(0.1, 0.3,    calibration_points_z))
+calibration_points.append(Point(0.1, 0.4,  calibration_points_z))
+calibration_points.append(Point(0.2, 0.3, calibration_points_z))
+calibration_points.append(Point(0.2, 0.4,  calibration_points_z))
+calibration_points.append(Point(0.15, 0.35,    calibration_points_z))
 
 # 定义拍照位姿
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) #Quaternion(0, 0, 0, 1)
+
+#拍照的六轴角度
+capture_joint = [0.97976, -0.96643, 2.6815, 0, 1.4258, 0.9799]
 
 # 初始化move_group的API
 moveit_commander.roscpp_initialize(sys.argv)
@@ -69,7 +72,7 @@ base_table_pose = PoseStamped()
 base_table_pose.header.frame_id = reference_frame
 base_table_pose.pose.position.x = 0.0
 base_table_pose.pose.position.y = 0.0
-base_table_pose.pose.position.z = 0.7#高度
+base_table_pose.pose.position.z = 0.86#高度
 base_table_pose.pose.orientation.w = 1.0
 scene.add_box(base_table_id, base_table_pose, base_table_size)
 rospy.sleep(1)
@@ -140,7 +143,23 @@ def moveTo(x, y, z):
     arm.set_pose_target(target_pose, end_effector_link)
     
     traj = arm.plan()
+    a = traj.positions
     arm.execute(traj)
+
+def moveJoint(value):
+    group_variable_values = arm.get_current_joint_values()
+    group_variable_values[0] = value[0]
+    group_variable_values[1] = value[1]
+    group_variable_values[2] = value[2]
+    group_variable_values[3] = value[3]
+    group_variable_values[4] = value[4]
+    group_variable_values[5] = value[5]
+    #print group_variable_values
+    arm.set_joint_value_target(group_variable_values)
+    traj = arm.plan()
+    #a = traj.joint_trajectory.points[1].positions
+    arm.execute(traj)
+    rospy.sleep(1)
 
 # 进入标定循环
 for point in calibration_points:
@@ -149,7 +168,15 @@ for point in calibration_points:
 
     # 运动到标定位姿
     arm.set_pose_target(target_pose, end_effector_link)
-    arm.go()
+    traj = arm.plan()
+    point_num = len(traj.joint_trajectory.points)
+    a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+    while a < 0:
+          traj = arm.plan()
+          point_num = len(traj.joint_trajectory.points)
+          a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+    print a
+    arm.execute(traj)
     rospy.sleep(1)
     
     # 等待用户确认
@@ -157,7 +184,7 @@ for point in calibration_points:
     rospy.sleep(1)
 
     # 运动到拍照位姿
-    moveTo(capture_point.x, capture_point.y, capture_point.z)
+    moveJoint(capture_joint)
     rospy.sleep(1)
 
     # 目标识别

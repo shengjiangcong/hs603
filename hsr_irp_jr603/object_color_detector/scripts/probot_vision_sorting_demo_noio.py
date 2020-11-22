@@ -22,18 +22,21 @@ blackStore  = [0.1391, -0.2254]
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
 #拍照的六轴角度
-capture_joint = [0, -1.208, 2.93, 0, 1.419, 0]
+capture_joint = [0.97976, -0.96643, 2.6815, 0, 1.4258, 0.9799]
 #存放的六轴角度
-green_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
-red_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
-blue_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
-black_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
+green_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
 
-pick_red_height   = 0.845
-pick_green_height = 0.815
-pick_blue_height  = 0.815
-pick_black_height  = 0.815
-pick_prepare_height = 0.92
+red_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
+
+blue_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
+
+black_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
+
+pick_red_height   = 0.91
+pick_green_height = 0.91
+pick_blue_height  = 0.91
+pick_black_height  = 0.91
+pick_prepare_height = 0.96
 
 place_prepare_height = 0.9
 
@@ -71,7 +74,7 @@ class ProbotSortingDemo:
         base_table_pose.header.frame_id = self.reference_frame
         base_table_pose.pose.position.x = 0.0
         base_table_pose.pose.position.y = 0.0
-        base_table_pose.pose.position.z = 0.8#高度
+        base_table_pose.pose.position.z = 0.86#高度
         base_table_pose.pose.orientation.w = 1.0
         self.scene.add_box(base_table_id, base_table_pose, base_table_size)
         rospy.sleep(1)
@@ -156,6 +159,7 @@ class ProbotSortingDemo:
         group_variable_values[3] = value[3]
         group_variable_values[4] = value[4]
         group_variable_values[5] = value[5]
+        print "move joint to:"
         print group_variable_values
         self.arm.set_joint_value_target(group_variable_values)
         traj = self.arm.plan()
@@ -196,8 +200,8 @@ if __name__ == "__main__":
 
     print "Probot sorting demo start."
     demo = ProbotSortingDemo()
-   # demo.moveJoint(red_place)
-    #demo.shutdown()
+    demo.moveJoint(capture_joint)
+    demo.shutdown()
     while not rospy.is_shutdown():
         # 相机拍照位置
         demo.moveJoint(capture_joint)
@@ -223,29 +227,37 @@ if __name__ == "__main__":
             y_value = response.redObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_red_height) == True:
-                demo.moveJoint(red_place)
-                #red_count = red_count + 1
+                demo.moveJoint(red_place[0])
+                demo.moveJoint(red_place[red_count + 1])
+                demo.moveJoint(red_place[0])
+                red_count = red_count + 1
         elif len(response.greenObjList):
             x_value = response.greenObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.greenObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_green_height) == True:
-                demo.moveJoint(green_place)
-                #green_count = green_count + 1
+                demo.moveJoint(green_place[0])
+                demo.moveJoint(green_place[green_count + 1])
+                demo.moveJoint(green_place[0])
+                green_count = green_count + 1
         elif len(response.blueObjList):
             x_value = response.blueObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.blueObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_blue_height) == True:
-                demo.moveJoint(blue_place)
-                #blue_count = blue_count + 1
+                demo.moveJoint(blue_place[0])
+                demo.moveJoint(blue_place[blue_count + 1])
+                demo.moveJoint(blue_place[0])
+                blue_count = blue_count + 1
         elif len(response.blackObjList):
             x_value = response.blackObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.blackObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_black_height) == True:
-                demo.moveJoint(black_place)
-                #blue_count = blue_count + 1
+                demo.moveJoint(black_place[0])
+                demo.moveJoint(black_place[blue_count + 1])
+                demo.moveJoint(black_place[0])
+                blue_count = blue_count + 1
 
         rate.sleep()
 

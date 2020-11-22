@@ -14,32 +14,36 @@ from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from object_color_detector.srv import *
 from hsr_rosi_device.srv import *
 
-redStore   = [0.232, -0.339]
-greenStore = [0.232, -0.339]
-blueStore  = [0.1391, -0.2254]
-blackStore  = [0.1391, -0.2254]
+redStore   = [0.105, -0.29, 0.92]
+greenStore = [0.215, -0.29, 0.92]
+blueStore  = [0.105, -0.40, 0.92]
+blackStore  = [0.1391, -0.2254, 0.92]
 
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
 #拍照的六轴角度
-capture_joint = [0, -1.208, 2.93, 0, 1.419, 0]
+capture_joint = [0.97976, -0.96643, 2.6815, 0, 1.4258, 0.9799]
 #存放的六轴角度
-green_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
-red_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
-blue_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
-black_place = [-0.874, -0.9047, 3.176, 0.00136, 0.8704, 0.05237]
+green_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
 
-pick_red_height   = 0.845
-pick_green_height = 0.815
-pick_blue_height  = 0.815
-pick_black_height  = 0.815
-pick_prepare_height = 0.92
+red_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
 
-place_prepare_height = 0.9
+blue_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
+
+black_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
+
+pick_red_height   = 0.91
+pick_green_height = 0.91
+pick_blue_height  = 0.91
+pick_black_height  = 0.91
+pick_prepare_height = 1.00
+
+place_prepare_height = 1.03
 
 red_count   = 0
 green_count = 0
 blue_count  = 0
+black_count = 0
 
 class ProbotSortingDemo:
     def __init__(self):
@@ -71,7 +75,7 @@ class ProbotSortingDemo:
         base_table_pose.header.frame_id = self.reference_frame
         base_table_pose.pose.position.x = 0.0
         base_table_pose.pose.position.y = 0.0
-        base_table_pose.pose.position.z = 0.8#高度
+        base_table_pose.pose.position.z = 0.86#高度
         base_table_pose.pose.orientation.w = 1.0
         self.scene.add_box(base_table_id, base_table_pose, base_table_size)
         rospy.sleep(1)
@@ -115,6 +119,43 @@ class ProbotSortingDemo:
         self.arm.set_pose_target(target_pose, self.end_effector_link)
         
         traj = self.arm.plan()
+        point_num = len(traj.joint_trajectory.points)
+        a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+        while a < 0:
+              traj = self.arm.plan()
+              point_num = len(traj.joint_trajectory.points)
+              a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+        print a
+
+        if len(traj.joint_trajectory.points) == 0:
+            return False
+
+        self.arm.execute(traj)
+        
+        return True
+
+    def moveToplace(self, x, y, z): 
+        # Create pose data           
+        target_pose = PoseStamped()
+        target_pose.header.frame_id = self.reference_frame
+        target_pose.header.stamp = rospy.Time.now()     
+        target_pose.pose.position.x = x
+        target_pose.pose.position.y = y
+        target_pose.pose.position.z = z
+        target_pose.pose.orientation = capture_quaternion
+        
+        # Set pick position 
+        self.arm.set_start_state_to_current_state()
+        self.arm.set_pose_target(target_pose, self.end_effector_link)
+        
+        traj = self.arm.plan()
+        point_num = len(traj.joint_trajectory.points)
+        a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+        while a > 0:
+              traj = self.arm.plan()
+              point_num = len(traj.joint_trajectory.points)
+              a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+        print a
 
         if len(traj.joint_trajectory.points) == 0:
             return False
@@ -127,8 +168,9 @@ class ProbotSortingDemo:
         if self.moveTo(x, y, pick_prepare_height) == True:
             print "Pick Once"
             self.moveTo(x, y, z)
-            
+            print "打开吸盘"
             self.io_control(True)
+            
             
             rospy.sleep(1)
             self.moveTo(x, y, pick_prepare_height)
@@ -139,11 +181,14 @@ class ProbotSortingDemo:
             return False
         
     def place(self, x, y, z): 
-        if self.moveTo(x, y, place_prepare_height) == True:
+        if self.moveToplace(x, y, place_prepare_height) == True:
             print "Place Once"
-            self.moveTo(x, y, z)
+            self.moveToplace(x, y, z)
 
-            self.moveTo(x, y, place_prepare_height)
+            print "关闭吸盘"
+            self.io_control(False)
+
+            self.moveToplace(x, y, place_prepare_height)
 
         else:
             print "Can not place"
@@ -161,7 +206,6 @@ class ProbotSortingDemo:
         traj = self.arm.plan()
         self.arm.execute(traj)
         rospy.sleep(1)
-        self.io_control(False)
 
     def io_control(self, value):
         rospy.wait_for_service('/set_robot_io')
@@ -223,29 +267,29 @@ if __name__ == "__main__":
             y_value = response.redObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_red_height) == True:
-                demo.moveJoint(red_place)
-                #red_count = red_count + 1
+                demo.place(redStore[0], redStore[1], redStore[2] + red_count*0.03)
+                red_count = red_count + 1
         elif len(response.greenObjList):
             x_value = response.greenObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.greenObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_green_height) == True:
-                demo.moveJoint(green_place)
-                #green_count = green_count + 1
+                demo.place(greenStore[0], greenStore[1], greenStore[2] + green_count*0.03)
+                green_count = green_count + 1
         elif len(response.blueObjList):
             x_value = response.blueObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.blueObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_blue_height) == True:
-                demo.moveJoint(blue_place)
-                #blue_count = blue_count + 1
+                demo.place(blueStore[0], blueStore[1], blueStore[2] + blue_count*0.03)
+                blue_count = blue_count + 1
         elif len(response.blackObjList):
             x_value = response.blackObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.blackObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_black_height) == True:
-                demo.moveJoint(black_place)
-                #blue_count = blue_count + 1
+                demo.place(blackStore[0], blackStore[1], blackStore[2] + black_count*0.03)
+                black_count = black_count + 1
 
         rate.sleep()
 
