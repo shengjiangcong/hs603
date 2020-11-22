@@ -13,7 +13,10 @@ from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 from object_color_detector.srv import *
 from hsr_rosi_device.srv import *
+#水平底座的高度（相对于机械臂坐标系）
+height_shuipin_collision = 0.8
 
+#第三个数据表示放置时候各自的高度
 redStore   = [0.105, -0.29, 0.92]
 greenStore = [0.215, -0.29, 0.92]
 blueStore  = [0.105, -0.40, 0.92]
@@ -21,23 +24,20 @@ blackStore  = [0.1391, -0.2254, 0.92]
 
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
-#拍照的六轴角度
+
+#拍照识别位置的六轴角度
 capture_joint = [0.97976, -0.96643, 2.6815, 0, 1.4258, 0.9799]
-#存放的六轴角度
-green_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
 
-red_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
-
-blue_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
-
-black_place = [[-0.91218, -1.11, 3.355, 0.0016, 0.895, -0.913], [-0.9119, -0.8434, 3.414, 0.002, 0.569, -0.913], [-0.912, -0.9477, 3.414, 0.002, 0.6769, -0.913], [-0.912, -1.026, 3.39, 0.0018, 0.772, -0.913]]
-
+#四种物品抓取时候的各自高度
 pick_red_height   = 0.91
 pick_green_height = 0.91
 pick_blue_height  = 0.91
 pick_black_height  = 0.91
+
+#抓取时候的准备高度
 pick_prepare_height = 1.00
 
+#放置时候的准备高度
 place_prepare_height = 1.03
 
 red_count   = 0
@@ -73,9 +73,9 @@ class ProbotSortingDemo:
         base_table_size = [3, 3, 0.01]
         base_table_pose = PoseStamped()
         base_table_pose.header.frame_id = self.reference_frame
-        base_table_pose.pose.position.x = 0.0
+        base_table_pose.pose.position.x = 0
         base_table_pose.pose.position.y = 0.0
-        base_table_pose.pose.position.z = 0.86#高度
+        base_table_pose.pose.position.z = height_shuipin_collision#高度
         base_table_pose.pose.orientation.w = 1.0
         self.scene.add_box(base_table_id, base_table_pose, base_table_size)
         rospy.sleep(1)
@@ -92,6 +92,62 @@ class ProbotSortingDemo:
         backward_wall_pose.pose.orientation.w = 1.0
         self.scene.add_box(backward_wall_id, backward_wall_pose, backward_wall_size)
         rospy.sleep(1)
+
+##############添加中间障碍#############
+        middle_collision_id = 'middle_collision'
+        self.scene.remove_world_object(middle_collision_id)
+        middle_collision_size = [0.2, 0.01, 0.25]
+        middle_collision_pose = PoseStamped()
+        middle_collision_pose.header.frame_id = self.reference_frame
+        middle_collision_pose.pose.position.x = 0.0
+        middle_collision_pose.pose.position.y = 0.0
+        middle_collision_pose.pose.position.z = 0.0
+        middle_collision_pose.pose.orientation.w = 1.0
+        self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
+        rospy.sleep(1)
+
+##############添加附着障碍#############
+        tool1_id = 'tool1'
+        self.scene.remove_attached_object(self.end_effector_link, tool1_id)
+        tool1_size = [0.052, 0.13, 0.003]
+        tool1_pose = PoseStamped()
+        tool1_pose.header.frame_id = self.end_effector_link
+        tool1_pose.pose.position.x = 0.0
+        tool1_pose.pose.position.y = 0.015
+        tool1_pose.pose.position.z = 0.0
+        tool1_pose.pose.orientation.w = 1.0
+        self.scene.attach_box(self.end_effector_link, tool1_id, tool1_pose, tool1_size)
+        rospy.sleep(1)
+
+##############添加附着障碍#############
+        tool2_id = 'tool2'
+        self.scene.remove_attached_object(self.end_effector_link, tool2_id)
+        tool2_size = [0.015, 0.015, 0.18]
+        tool2_pose = PoseStamped()
+        tool2_pose.header.frame_id = self.end_effector_link
+        tool2_pose.pose.position.x = 0.0
+        tool2_pose.pose.position.y = 0.07
+        tool2_pose.pose.position.z = 0.04
+        tool2_pose.pose.orientation.w = 1.0
+        self.scene.attach_box(self.end_effector_link, tool2_id, tool2_pose, tool2_size)
+        rospy.sleep(1)
+
+##############添加附着障碍#############
+        tool3_id = 'tool3'
+        self.scene.remove_attached_object(self.end_effector_link, tool3_id)
+        tool3_size = [0.09, 0.03, 0.026]
+        tool3_pose = PoseStamped()
+        tool3_pose.header.frame_id = self.end_effector_link
+        tool3_pose.pose.position.x = 0.0
+        tool3_pose.pose.position.y = -0.035
+        tool3_pose.pose.position.z = 0.013
+        tool3_pose.pose.orientation.w = 1.0
+        self.scene.attach_box(self.end_effector_link, tool3_id, tool3_pose, tool3_size)
+        rospy.sleep(1)
+
+
+
+
 
 
         #initialize arm position to home
