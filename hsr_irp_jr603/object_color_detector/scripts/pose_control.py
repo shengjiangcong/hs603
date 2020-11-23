@@ -15,6 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#######标定盒子位置
+#盒子位置0.22,0.15,1.02，所以障碍物位置设置    box1_x = 0.3925  box1_y = 0.25
+#机械臂末端距离吸盘 7.25cm
+
+#存放盒位置0.3，-0.18,1.04， 所以障碍物位置设置    box2_x = 0.3725    box2_y = -0.18
+
+
 import rospy, sys
 import moveit_commander
 import numpy as np
@@ -36,7 +43,7 @@ calibration_points.append(Point(0.35, -0.1,  calibration_points_z))
 calibration_points.append(Point(0.30, -0.1,    calibration_points_z))
 
 # 定义拍照位姿
-capture_point = Point(0.201164, 0.26694, 0.83)
+capture_point = Point(0.3, -0.18, 1.04)#0.22,0.15,1.02，
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) #Quaternion(0, 0, 0, 1)
 
 # 初始化move_group的API

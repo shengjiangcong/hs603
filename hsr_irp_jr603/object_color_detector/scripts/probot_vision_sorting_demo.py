@@ -16,17 +16,20 @@ from hsr_rosi_device.srv import *
 #水平底座的高度（相对于机械臂坐标系）
 height_shuipin_collision = 0.8
 
+#收纳盒中心位置
+box2_x = 0.3725
+box2_y = -0.18
 #第三个数据表示放置时候各自的高度//间隔0.11
-redStore   = [0.23849, -0.1389, 0.96]
-greenStore = [0.34849, -0.1389, 0.96]
-blueStore  = [0.23849, -0.2489, 0.96]
-blackStore  = [0.34849, -0.2489, 0.96]
+redStore   = [box2_x - 0.0725 - 0.055, box2_y - 0.055, 0.96]
+greenStore = [box2_x - 0.0725 - 0.055, box2_y + 0.055, 0.96]
+blueStore  = [box2_x - 0.0725 + 0.055, box2_y - 0.055, 0.96]
+blackStore = [box2_x - 0.0725 + 0.055, box2_y + 0.055, 0.96]
 
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
 
 #拍照识别位置的六轴角度
-capture_joint = [0.6011117696762085, -0.7923115491867065, 2.413801908493042, -0.0009032340603880584, 1.518815279006958, 0.6011884808540344]
+capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5558713674545288]
 
 #四种物品抓取时候的各自高度
 pick_red_height   = 0.98
@@ -35,7 +38,7 @@ pick_blue_height  = 0.98
 pick_black_height = 0.98
 
 #抓取时候的准备高度
-pick_prepare_height = 1.05
+pick_prepare_height = 1.06
 
 #放置时候的准备高度
 place_prepare_height = 1.08
@@ -44,6 +47,8 @@ red_count   = 0
 green_count = 0
 blue_count  = 0
 black_count = 0
+
+
 
 class ProbotSortingDemo:
     def __init__(self):
@@ -146,13 +151,21 @@ class ProbotSortingDemo:
         rospy.sleep(1)
 
 
-
-
-
-
         #initialize arm position to home
         self.arm.set_named_target('home')
         self.arm.go()
+        rospy.sleep(1)
+    def addbox(self, size, pose, name):
+        backward_wall_id = name
+        self.scene.remove_world_object(backward_wall_id)
+        backward_wall_size = size
+        backward_wall_pose = PoseStamped()
+        backward_wall_pose.header.frame_id = self.reference_frame
+        backward_wall_pose.pose.position.x = pose[0]
+        backward_wall_pose.pose.position.y = pose[1]
+        backward_wall_pose.pose.position.z = pose[2]
+        backward_wall_pose.pose.orientation.w = 1.0
+        self.scene.add_box(backward_wall_id, backward_wall_pose, backward_wall_size)
         rospy.sleep(1)
 
     def moveToHome(self):
@@ -292,6 +305,8 @@ if __name__ == "__main__":
 
     time.sleep(3)
 
+
+
     rospy.init_node('probot_vision_sorting_demo')
     rate = rospy.Rate(10)
 
@@ -300,8 +315,51 @@ if __name__ == "__main__":
 
     print "Probot sorting demo start."
     demo = ProbotSortingDemo()
-    #demo.moveJoint(capture_joint)
-    #demo.shutdown()
+    demo.moveJoint(capture_joint)
+    demo.shutdown()
+
+##########添加两个盒子###################
+
+    size1_L = [0.20, 0.01, 0.075]
+    size1_R = [0.20, 0.01, 0.075]
+    size1_F = [0.01, 0.20, 0.075]
+    size1_B = [0.01, 0.20, 0.075]
+
+    box1_x = 0.3925
+    box1_y = 0.25
+
+    pose1_L = [box1_x, box1_y-0.1, height_shuipin_collision + size1_L[2]/2.0]
+    pose1_R = [box1_x, box1_y+0.1, height_shuipin_collision + size1_R[2]/2.0]
+    pose1_F = [box1_x-0.1, box1_y, height_shuipin_collision + size1_F[2]/2.0]
+    pose1_B = [box1_x+0.1, box1_y, height_shuipin_collision + size1_B[2]/2.0]
+    demo.addbox(size1_L, pose1_L, 'box1_L')  
+    demo.addbox(size1_R, pose1_R, 'box1_R') 
+    demo.addbox(size1_F, pose1_F, 'box1_F') 
+    demo.addbox(size1_B, pose1_B, 'box1_B')
+
+    box2_x = 0.3725
+    box2_y = -0.18
+
+    size2_L = [0.235, 0.01, 0.095]
+    size2_R = [0.235, 0.01, 0.095]
+    size2_F = [0.01, 0.235, 0.095]
+    size2_B = [0.01, 0.235, 0.095]
+    size2_M1= [0.235, 0.01, 0.095]
+    size2_M2= [0.01, 0.235, 0.095]
+
+    pose2_L = [box2_x, box2_y-0.1175, height_shuipin_collision + size2_L[2]/2.0]
+    pose2_R = [box2_x, box2_y+0.1175, height_shuipin_collision + size2_R[2]/2.0]
+    pose2_F = [box2_x-0.1175, box2_y, height_shuipin_collision + size2_F[2]/2.0]
+    pose2_B = [box2_x+0.1175, box2_y, height_shuipin_collision + size2_B[2]/2.0]
+    pose2_M1= [box2_x, box2_y, height_shuipin_collision + size2_M1[2]/2.0]
+    pose2_M2= [box2_x, box2_y, height_shuipin_collision + size2_M2[2]/2.0]
+    demo.addbox(size2_L, pose2_L, 'box2_L')  
+    demo.addbox(size2_R, pose2_R, 'box2_R') 
+    demo.addbox(size2_F, pose2_F, 'box2_F') 
+    demo.addbox(size2_B, pose2_B, 'box2_B')
+    demo.addbox(size2_M1, pose2_M1, 'box2_M1') 
+    demo.addbox(size2_M2, pose2_M2, 'box2_M2S')
+  
     while not rospy.is_shutdown():
         # 相机拍照位置
         demo.moveJoint(capture_joint)
