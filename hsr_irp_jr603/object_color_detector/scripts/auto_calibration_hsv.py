@@ -26,21 +26,23 @@ from sensor_msgs.msg import CompressedImage
 from object_color_detector.srv import *
 from sklearn.linear_model import LinearRegression
 
+height_shuipin_collision = 0.8
+
 # 定义标定位姿点
-calibration_points_z = 0.915 #0.2
+calibration_points_z = 0.99
 calibration_points = []
-calibration_points.append(Point(0.1, 0.3,    calibration_points_z))
-calibration_points.append(Point(0.1, 0.4,  calibration_points_z))
-calibration_points.append(Point(0.2, 0.3, calibration_points_z))
-calibration_points.append(Point(0.2, 0.4,  calibration_points_z))
-calibration_points.append(Point(0.15, 0.35,    calibration_points_z))
+calibration_points.append(Point(0.24, 0.20,    calibration_points_z))
+calibration_points.append(Point(0.24, 0.30,  calibration_points_z))
+calibration_points.append(Point(0.32, 0.20, calibration_points_z))
+calibration_points.append(Point(0.32, 0.30,  calibration_points_z))
+calibration_points.append(Point(0.28, 0.25,    calibration_points_z))
 
 # 定义拍照位姿
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) #Quaternion(0, 0, 0, 1)
 
 #拍照的六轴角度
-capture_joint = [0.97976, -0.96643, 2.6815, 0, 1.4258, 0.9799]
+capture_joint = [0.6011117696762085, -0.7923115491867065, 2.413801908493042, -0.0009032340603880584, 1.518815279006958, 0.6011884808540344]
 
 # 初始化move_group的API
 moveit_commander.roscpp_initialize(sys.argv)
@@ -53,6 +55,8 @@ scene = moveit_commander.PlanningSceneInterface()
 arm = moveit_commander.MoveGroupCommander('arm')
 reference_frame = 'world'
 
+end_effector_link = arm.get_end_effector_link()
+
 # 设置目标位置所使用的参考坐标系
 arm.set_pose_reference_frame(reference_frame)
         
@@ -62,17 +66,16 @@ arm.allow_replanning(True)
 # 设置位置(单位：米)和姿态（单位：弧度）的允许误差
 arm.set_goal_position_tolerance(0.0001)
 arm.set_goal_orientation_tolerance(0.0001)
-
-#############添加水平障碍############
 rospy.sleep(1)
+#############添加水平障碍############
 base_table_id = 'base_table'
 scene.remove_world_object(base_table_id)
 base_table_size = [3, 3, 0.01]
 base_table_pose = PoseStamped()
 base_table_pose.header.frame_id = reference_frame
-base_table_pose.pose.position.x = 0.0
+base_table_pose.pose.position.x = 0
 base_table_pose.pose.position.y = 0.0
-base_table_pose.pose.position.z = 0.86#高度
+base_table_pose.pose.position.z = height_shuipin_collision#高度
 base_table_pose.pose.orientation.w = 1.0
 scene.add_box(base_table_id, base_table_pose, base_table_size)
 rospy.sleep(1)
@@ -90,6 +93,57 @@ backward_wall_pose.pose.orientation.w = 1.0
 scene.add_box(backward_wall_id, backward_wall_pose, backward_wall_size)
 rospy.sleep(1)
 
+##############添加中间障碍#############
+#middle_collision_id = 'middle_collision'
+#scene.remove_world_object(middle_collision_id)
+#middle_collision_size = [0.2, 0.01, 0.25]
+#middle_collision_pose = PoseStamped()
+#middle_collision_pose.header.frame_id = reference_frame
+#middle_collision_pose.pose.position.x = 0.4
+#middle_collision_pose.pose.position.y = 0.0
+#middle_collision_pose.pose.position.z = 0.925
+#middle_collision_pose.pose.orientation.w = 1.0
+#scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
+#rospy.sleep(1)
+
+##############添加附着障碍#############
+#tool1_id = 'tool1'
+#scene.remove_attached_object(end_effector_link, tool1_id)
+tool1_size = [0.052, 0.13, 0.003]
+tool1_pose = PoseStamped()
+tool1_pose.header.frame_id = end_effector_link
+tool1_pose.pose.position.x = 0.0
+tool1_pose.pose.position.y = 0.015
+tool1_pose.pose.position.z = 0.0
+tool1_pose.pose.orientation.w = 1.0
+#scene.attach_box(end_effector_link, tool1_id, tool1_pose, tool1_size)
+rospy.sleep(1)
+
+##############添加附着障碍#############
+tool2_id = 'tool2'
+#scene.remove_attached_object(end_effector_link, tool2_id)
+tool2_size = [0.015, 0.015, 0.18]
+tool2_pose = PoseStamped()
+tool2_pose.header.frame_id = end_effector_link
+tool2_pose.pose.position.x = 0.0
+tool2_pose.pose.position.y = 0.07
+tool2_pose.pose.position.z = 0.04
+tool2_pose.pose.orientation.w = 1.0
+#scene.attach_box(end_effector_link, tool2_id, tool2_pose, tool2_size)
+rospy.sleep(1)
+
+##############添加附着障碍#############
+tool3_id = 'tool3'
+#scene.remove_attached_object(end_effector_link, tool3_id)
+tool3_size = [0.09, 0.03, 0.026]
+tool3_pose = PoseStamped()
+tool3_pose.header.frame_id = end_effector_link
+tool3_pose.pose.position.x = 0.0
+tool3_pose.pose.position.y = -0.035
+tool3_pose.pose.position.z = 0.013
+tool3_pose.pose.orientation.w = 1.0
+#scene.attach_box(end_effector_link, tool3_id, tool3_pose, tool3_size)
+rospy.sleep(1)
 
 
 
@@ -194,11 +248,11 @@ for point in calibration_points:
         rospy.wait_for_service('/object_detect')
         try:
             detect_object_service = rospy.ServiceProxy('/object_detect', DetectObjectSrv)
-            response = detect_object_service(DetectObjectSrvRequest.RED_OBJECT) 
+            response = detect_object_service(DetectObjectSrvRequest.GREEN_OBJECT) 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
         
-        regObjList = response.redObjList
+        regObjList = response.greenObjList
         rospy.loginfo("Detect red object over" )
     except rospy.ROSException:
         rospy.loginfo("Timeout waiting for image data.")

@@ -16,29 +16,29 @@ from hsr_rosi_device.srv import *
 #水平底座的高度（相对于机械臂坐标系）
 height_shuipin_collision = 0.8
 
-#第三个数据表示放置时候各自的高度
-redStore   = [0.105, -0.29, 0.92]
-greenStore = [0.215, -0.29, 0.92]
-blueStore  = [0.105, -0.40, 0.92]
-blackStore  = [0.1391, -0.2254, 0.92]
+#第三个数据表示放置时候各自的高度//间隔0.11
+redStore   = [0.23849, -0.1389, 0.96]
+greenStore = [0.34849, -0.1389, 0.96]
+blueStore  = [0.23849, -0.2489, 0.96]
+blackStore  = [0.34849, -0.2489, 0.96]
 
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
 
 #拍照识别位置的六轴角度
-capture_joint = [0.97976, -0.96643, 2.6815, 0, 1.4258, 0.9799]
+capture_joint = [0.6011117696762085, -0.7923115491867065, 2.413801908493042, -0.0009032340603880584, 1.518815279006958, 0.6011884808540344]
 
 #四种物品抓取时候的各自高度
-pick_red_height   = 0.91
-pick_green_height = 0.91
-pick_blue_height  = 0.91
-pick_black_height  = 0.91
+pick_red_height   = 0.98
+pick_green_height = 0.98
+pick_blue_height  = 0.98
+pick_black_height = 0.98
 
 #抓取时候的准备高度
-pick_prepare_height = 1.00
+pick_prepare_height = 1.05
 
 #放置时候的准备高度
-place_prepare_height = 1.03
+place_prepare_height = 1.08
 
 red_count   = 0
 green_count = 0
@@ -99,9 +99,9 @@ class ProbotSortingDemo:
         middle_collision_size = [0.2, 0.01, 0.25]
         middle_collision_pose = PoseStamped()
         middle_collision_pose.header.frame_id = self.reference_frame
-        middle_collision_pose.pose.position.x = 0.0
+        middle_collision_pose.pose.position.x = 0.4
         middle_collision_pose.pose.position.y = 0.0
-        middle_collision_pose.pose.position.z = 0.0
+        middle_collision_pose.pose.position.z = 0.925
         middle_collision_pose.pose.orientation.w = 1.0
         self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
         rospy.sleep(1)
@@ -176,6 +176,8 @@ class ProbotSortingDemo:
         
         traj = self.arm.plan()
         point_num = len(traj.joint_trajectory.points)
+        if (point_num == 0):
+           return False
         a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
         while a < 0:
               traj = self.arm.plan()
@@ -206,6 +208,8 @@ class ProbotSortingDemo:
         
         traj = self.arm.plan()
         point_num = len(traj.joint_trajectory.points)
+        if (point_num == 0):
+           return False
         a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
         while a > 0:
               traj = self.arm.plan()
@@ -296,7 +300,7 @@ if __name__ == "__main__":
 
     print "Probot sorting demo start."
     demo = ProbotSortingDemo()
-   # demo.moveJoint(red_place)
+    #demo.moveJoint(capture_joint)
     #demo.shutdown()
     while not rospy.is_shutdown():
         # 相机拍照位置
