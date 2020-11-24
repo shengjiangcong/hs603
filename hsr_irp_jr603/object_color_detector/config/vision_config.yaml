@@ -1,11 +1,11 @@
 black: {hmax: 113, hmin: 114, smax: 204, smin: 121, vmax: 217, vmin: 168}
-blue: {hmax: 360, hmin: 194, smax: 255, smin: 220, vmax: 250, vmin: 174}
+blue: {hmax: 360, hmin: 194, smax: 255, smin: 220, vmax: 250, vmin: 120}
 green: {hmax: 179, hmin: 56, smax: 255, smin: 78, vmax: 250, vmin: 52}
 image:
   ROI_height: 480
   ROI_wdith: 640
   ROI_x: 0
   ROI_y: 0
-  reg_x: [0.0004517899304447708, 0.1891902239806011]
-  reg_y: [0.00045009245142245424, 0.09624841859408961]
-red: {hmax: 360, hmin: 0, smax: 247, smin: 105, vmax: 250, vmin: 147}
+  reg_x: [0.0005051794572512399, 0.16693317770644886]
+  reg_y: [0.0005017355632691702, 0.054859577153676176]
+red: {hmax: 51, hmin: 0, smax: 255, smin: 78, vmax: 250, vmin: 160}

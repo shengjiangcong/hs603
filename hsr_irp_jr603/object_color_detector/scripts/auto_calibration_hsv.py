@@ -28,21 +28,21 @@ from sklearn.linear_model import LinearRegression
 
 height_shuipin_collision = 0.8
 
-# 定义标定位姿点
+# 定义标定位姿点 左上角是0.22,0.15
 calibration_points_z = 0.99
 calibration_points = []
-calibration_points.append(Point(0.24, 0.20,    calibration_points_z))
+calibration_points.append(Point(0.24, 0.18,    calibration_points_z))
 calibration_points.append(Point(0.24, 0.30,  calibration_points_z))
-calibration_points.append(Point(0.32, 0.20, calibration_points_z))
-calibration_points.append(Point(0.32, 0.30,  calibration_points_z))
-calibration_points.append(Point(0.28, 0.25,    calibration_points_z))
+calibration_points.append(Point(0.38, 0.18, calibration_points_z))
+calibration_points.append(Point(0.38, 0.30,  calibration_points_z))
+calibration_points.append(Point(0.31, 0.24,    calibration_points_z))
 
 # 定义拍照位姿
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) #Quaternion(0, 0, 0, 1)
 
-#拍照的六轴角度
-capture_joint = [0.6011117696762085, -0.7923115491867065, 2.413801908493042, -0.0009032340603880584, 1.518815279006958, 0.6011884808540344]
+#拍照识别位置的六轴角度
+capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5558713674545288]
 
 # 初始化move_group的API
 moveit_commander.roscpp_initialize(sys.argv)

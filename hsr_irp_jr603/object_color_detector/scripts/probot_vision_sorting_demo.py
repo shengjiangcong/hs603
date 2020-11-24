@@ -20,10 +20,10 @@ height_shuipin_collision = 0.8
 box2_x = 0.3725
 box2_y = -0.18
 #第三个数据表示放置时候各自的高度//间隔0.11
-redStore   = [box2_x - 0.0725 - 0.055, box2_y - 0.055, 0.96]
-greenStore = [box2_x - 0.0725 - 0.055, box2_y + 0.055, 0.96]
-blueStore  = [box2_x - 0.0725 + 0.055, box2_y - 0.055, 0.96]
-blackStore = [box2_x - 0.0725 + 0.055, box2_y + 0.055, 0.96]
+redStore   = [box2_x - 0.0725 - 0.055, box2_y - 0.055, 0.98]
+greenStore = [box2_x - 0.0725 - 0.055, box2_y + 0.055, 0.98]
+blueStore  = [box2_x - 0.0725 + 0.055, box2_y - 0.055, 0.98]
+blackStore = [box2_x - 0.0725 + 0.055, box2_y + 0.055, 0.98]
 
 capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
@@ -38,7 +38,7 @@ pick_blue_height  = 0.98
 pick_black_height = 0.98
 
 #抓取时候的准备高度
-pick_prepare_height = 1.06
+pick_prepare_height = 1.07
 
 #放置时候的准备高度
 place_prepare_height = 1.08
@@ -108,7 +108,7 @@ class ProbotSortingDemo:
         middle_collision_pose.pose.position.y = 0.0
         middle_collision_pose.pose.position.z = 0.925
         middle_collision_pose.pose.orientation.w = 1.0
-        self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
+        #self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
         rospy.sleep(1)
 
 ##############添加附着障碍#############
@@ -187,15 +187,22 @@ class ProbotSortingDemo:
         self.arm.set_start_state_to_current_state()
         self.arm.set_pose_target(target_pose, self.end_effector_link)
         
-        traj = self.arm.plan()
-        point_num = len(traj.joint_trajectory.points)
-        if (point_num == 0):
-           return False
-        a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
-        while a < 0:
+        #traj = self.arm.plan()
+        point_num = 0
+        #point_num = len(traj.joint_trajectory.points)
+        #if (point_num == 0):
+         #  return False
+        #a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+        while (point_num == 0):
+              print '规划ing'
               traj = self.arm.plan()
               point_num = len(traj.joint_trajectory.points)
-              a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+              if (point_num > 0):
+                  a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+                  if (a > 0):
+                     break
+                  a = 0
+                  point_num = 0
         print a
 
         if len(traj.joint_trajectory.points) == 0:
@@ -219,15 +226,21 @@ class ProbotSortingDemo:
         self.arm.set_start_state_to_current_state()
         self.arm.set_pose_target(target_pose, self.end_effector_link)
         
-        traj = self.arm.plan()
-        point_num = len(traj.joint_trajectory.points)
-        if (point_num == 0):
-           return False
-        a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
-        while a > 0:
+        #traj = self.arm.plan()
+        point_num = 0
+        #if (point_num == 0):
+         #  return False
+        #a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+        while (point_num == 0):
+              print '规划ing'
               traj = self.arm.plan()
               point_num = len(traj.joint_trajectory.points)
-              a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+              if (point_num > 0):
+                  a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+                  if (a < 0):
+                     break
+                  a = 0
+                  point_num = 0
         print a
 
         if len(traj.joint_trajectory.points) == 0:
@@ -242,7 +255,7 @@ class ProbotSortingDemo:
             print "Pick Once"
             self.moveTo(x, y, z)
             print "打开吸盘"
-            self.io_control(True)
+            #self.io_control(True)
             
             
             rospy.sleep(1)
@@ -259,7 +272,7 @@ class ProbotSortingDemo:
             self.moveToplace(x, y, z)
 
             print "关闭吸盘"
-            self.io_control(False)
+            #self.io_control(False)
 
             self.moveToplace(x, y, place_prepare_height)
 
@@ -315,8 +328,8 @@ if __name__ == "__main__":
 
     print "Probot sorting demo start."
     demo = ProbotSortingDemo()
-    demo.moveJoint(capture_joint)
-    demo.shutdown()
+    #demo.moveJoint(capture_joint)
+    #demo.shutdown()
 
 ##########添加两个盒子###################
 
@@ -337,8 +350,8 @@ if __name__ == "__main__":
     demo.addbox(size1_F, pose1_F, 'box1_F') 
     demo.addbox(size1_B, pose1_B, 'box1_B')
 
-    box2_x = 0.3725
-    box2_y = -0.18
+    #box2_x = 0.3725
+    #box2_y = -0.18
 
     size2_L = [0.235, 0.01, 0.095]
     size2_R = [0.235, 0.01, 0.095]
