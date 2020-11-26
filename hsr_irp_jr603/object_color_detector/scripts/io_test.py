@@ -29,33 +29,37 @@ from hsr_rosi_device.srv import *
 
 rospy.init_node('io_test')
 rospy.loginfo("io_test")
+a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
 
-rospy.wait_for_service('/set_robot_io')
-try:
-    a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
-    response = a(1, True, False)
-except rospy.ServiceException, e:
+while(1):
+ rospy.wait_for_service('/set_robot_io')
+ try:
+    #a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
+    response = a(3, True, False)
+ except rospy.ServiceException, e:
     print "Service call failed: %s"%e
-rospy.sleep(1)
-try:
-    a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
-    response = a(2, True, False)
-except rospy.ServiceException, e:
+ rospy.sleep(1)
+ try:
+    #a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
+    response = a(4, True, False)
+ except rospy.ServiceException, e:
     print "Service call failed: %s"%e
 
-rospy.sleep(5)
+ rospy.sleep(3)
 
-try:
-    a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
-    response = a(1, False, False)
-except rospy.ServiceException, e:
+ try:
+    #a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
+    response = a(3, False, False)
+ except rospy.ServiceException, e:
     print "Service call failed: %s"%e
-rospy.sleep(1)
-try:
-    a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
-    response = a(2, False, False)
-except rospy.ServiceException, e:
+ rospy.sleep(1)
+ try:
+    #a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
+    response = a(4, False, False)
+ except rospy.ServiceException, e:
     print "Service call failed: %s"%e
+
+ rospy.sleep(3)
 
 
 # 关闭并退出moveit

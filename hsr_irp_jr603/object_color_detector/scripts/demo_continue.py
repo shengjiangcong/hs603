@@ -13,6 +13,8 @@ from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 from object_color_detector.srv import *
 from hsr_rosi_device.srv import *
+from copy import deepcopy
+
 #水平底座的高度（相对于机械臂坐标系）
 height_shuipin_collision = 0.8
 
@@ -25,8 +27,9 @@ greenStore = [box2_x - 0.0725 - 0.055, box2_y + 0.055, 0.98]
 blueStore  = [box2_x - 0.0725 + 0.055, box2_y - 0.055, 0.98]
 blackStore = [box2_x - 0.0725 + 0.055, box2_y + 0.055, 0.98]
 
-capture_point = Point(0.38876, 0, 1.17)
+capture_point = [0.39464, 0.2451, 1.1839]
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
+home_point = [0.28685, 0, 1.2327]
 
 #拍照识别位置的六轴角度
 capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5558713674545288]
@@ -47,6 +50,11 @@ red_count   = 0
 green_count = 0
 blue_count  = 0
 black_count = 0
+
+
+coll_x = 0.4
+coll_y = 0
+coll_z = 1.5
 
 io_serv = rospy.ServiceProxy('/set_robot_io', setRobotIo)
 
@@ -110,7 +118,7 @@ class ProbotSortingDemo:
         middle_collision_pose.pose.position.y = 0.0
         middle_collision_pose.pose.position.z = height_shuipin_collision + middle_collision_size[2]/2.0
         middle_collision_pose.pose.orientation.w = 1.0
-        self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
+        #self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
         rospy.sleep(1)
 
 ##############添加附着障碍#############
@@ -221,8 +229,6 @@ class ProbotSortingDemo:
               traj = self.arm.plan()
               point_num = len(traj.joint_trajectory.points)
               if (point_num > 0):
-                  #for count in range(0,point_num - 1):
-                   #     print traj.joint_trajectory.points[count].time_from_start
                   a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
                   if (a > 0):
                      break
@@ -275,6 +281,8 @@ class ProbotSortingDemo:
         self.arm.execute(traj)
         
         return True
+
+
     
     def pick(self, x, y, z):
         if self.moveTo(x, y, pick_prepare_height) == True:
@@ -292,7 +300,184 @@ class ProbotSortingDemo:
         else:
             print "Can not pick"
             return False
-        
+
+
+    def pick_test(self, x, y, z):
+            waypoints = []  
+            start_pose = self.arm.get_current_pose(self.end_effector_link).pose   
+           # waypoints.append(start_pose)
+            wpose = deepcopy(start_pose)
+            wpose.position.x = x
+            wpose.position.y = y
+            wpose.position.z = pick_prepare_height
+            waypoints.append(deepcopy(wpose))
+            wpose.position.z = z
+            waypoints.append(deepcopy(wpose))
+
+            fraction = 0.0   #路径规划覆盖率
+            maxtries = 100   #最大尝试规划次数
+            attempts = 0     #已经尝试规划次数
+            point_num = 0
+            self.arm.set_start_state_to_current_state()
+
+            while fraction < 1.0 and attempts < maxtries:
+                (plan, fraction) = self.arm.compute_cartesian_path (
+                                    waypoints,   # waypoint poses，路点列表
+                                    0.01,        # eef_step，终端步进值
+                                    0.0,         # jump_threshold，跳跃阈值
+                                    True)        # avoid_collisions，避障规划
+                attempts += 1
+                if (fraction > 0.9):
+                    point_num = len(plan.joint_trajectory.points)
+                    #plan.joint_trajectory.points[1].time_from_start = plan.joint_trajectory.points[0].time_from_start 
+                    for count in range(0,point_num - 1):
+                        print plan.joint_trajectory.points[count].time_from_start
+                        if (plan.joint_trajectory.points[count].positions[0] < 0):
+                           fraction = 0.0
+                           print "plan反向，重新解算"
+                           break
+                else :
+                    print "plan无解，重新解算"
+     
+            # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
+            if fraction == 1.0:
+                #print "解算成功"
+                rospy.sleep(3)
+                self.arm.execute(plan)
+                rospy.sleep(3)
+                #print "运动执行成功"
+            else:
+                rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
+
+            rospy.sleep(0.5)
+            print "打开吸盘"
+            self.io_control(True)
+            
+            #self.addmukuai()   
+            rospy.sleep(0.5)
+            return True
+
+
+    def place_test(self, x, y, z, pick_x, pick_y):
+            waypoints = []  
+            start_pose = self.arm.get_current_pose(self.end_effector_link).pose   
+            #waypoints.append(start_pose)
+            wpose = deepcopy(start_pose)
+            wpose.position.x = pick_x
+            wpose.position.y = pick_y
+            wpose.position.z = pick_prepare_height
+            waypoints.append(deepcopy(wpose))
+            wpose.position.x = home_point[0]
+            wpose.position.y = home_point[1]
+            wpose.position.z = home_point[2]
+            waypoints.append(deepcopy(wpose))
+            wpose.position.x = x
+            wpose.position.y = y
+            wpose.position.z = place_prepare_height
+            waypoints.append(deepcopy(wpose))
+            wpose.position.x = x
+            wpose.position.y = y
+            wpose.position.z = z
+            waypoints.append(deepcopy(wpose))
+
+
+            fraction = 0.0   #路径规划覆盖率
+            maxtries = 100   #最大尝试规划次数
+            attempts = 0     #已经尝试规划次数
+            point_num = 0
+            self.arm.set_start_state_to_current_state()
+
+            while fraction < 1.0 and attempts < maxtries:
+                (plan, fraction) = self.arm.compute_cartesian_path (
+                                    waypoints,   # waypoint poses，路点列表
+                                    0.01,        # eef_step，终端步进值
+                                    0.0,         # jump_threshold，跳跃阈值
+                                    True)        # avoid_collisions，避障规划
+                attempts += 1
+                if (fraction > 0.9):
+                    point_num = len(plan.joint_trajectory.points)
+                    for count in range(0,point_num - 1):
+                        if (plan.joint_trajectory.points[count].positions[0] > 2):
+                           fraction = 0.0
+                           print "plan反向，重新解算"
+                           break
+                else :
+                    print "plan无解，重新解算"
+                     
+            # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
+            if fraction == 1.0:
+                #print "解算成功"
+                rospy.sleep(1)
+                self.arm.execute(plan)
+                rospy.sleep(1)
+                #print "运动执行成功"
+            else:
+                rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
+
+            rospy.sleep(0.5)
+            print "关闭吸盘"
+            self.io_control(False)
+            
+            #self.rmmukuai()   
+            rospy.sleep(0.5)
+            return True
+
+    def move_to_camera(self, place_x, place_y):
+            waypoints = []  
+            start_pose = self.arm.get_current_pose(self.end_effector_link).pose   
+            #waypoints.append(start_pose)
+            wpose = deepcopy(start_pose)
+            wpose.position.x = place_x
+            wpose.position.y = place_y
+            wpose.position.z = place_prepare_height
+            waypoints.append(deepcopy(wpose))
+            wpose.position.x = home_point[0]
+            wpose.position.y = home_point[1]
+            wpose.position.z = home_point[2]
+            waypoints.append(deepcopy(wpose))
+            wpose.position.x = capture_point[0]
+            wpose.position.y = capture_point[1]
+            wpose.position.z = capture_point[2]
+            waypoints.append(deepcopy(wpose))
+
+            fraction = 0.0   #路径规划覆盖率
+            maxtries = 100   #最大尝试规划次数
+            attempts = 0     #已经尝试规划次数
+            point_num = 0
+            self.arm.set_start_state_to_current_state()
+
+            while fraction < 1.0 and attempts < maxtries:
+                (plan, fraction) = self.arm.compute_cartesian_path (
+                                    waypoints,   # waypoint poses，路点列表
+                                    0.01,        # eef_step，终端步进值
+                                    0.0,         # jump_threshold，跳跃阈值
+                                    True)        # avoid_collisions，避障规划
+
+                attempts += 1
+                if (fraction > 0.9):
+                    point_num = len(plan.joint_trajectory.points)
+                    for count in range(0,point_num - 1):
+                        if (plan.joint_trajectory.points[count].positions[0] < -2):
+                           fraction = 0.0
+                           print "plan反向，重新解算"
+                           break
+                else :
+                    print "plan无解，重新解算"
+                     
+            # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
+            if fraction == 1.0:
+                #print "解算成功"
+                rospy.sleep(1)
+                self.arm.execute(plan)
+                rospy.sleep(1)
+                #print "运动执行成功"
+            else:
+                rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
+ 
+            rospy.sleep(0.5)
+            return True        
+
+
     def place(self, x, y, z): 
         if self.moveToplace(x, y, place_prepare_height) == True:
             print "Place Once"
@@ -400,10 +585,11 @@ if __name__ == "__main__":
     demo.addbox(size2_B, pose2_B, 'box2_B')
     demo.addbox(size2_M1, pose2_M1, 'box2_M1') 
     demo.addbox(size2_M2, pose2_M2, 'box2_M2S') 
+    # 相机拍照位置
+    demo.moveJoint(capture_joint)
+    rospy.sleep(1)
 
     while not rospy.is_shutdown():
-        # 相机拍照位置
-        demo.moveJoint(capture_joint)
 
         # Get target
         rospy.wait_for_service('/object_detect')
@@ -425,30 +611,36 @@ if __name__ == "__main__":
             x_value = response.redObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.redObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
-            if demo.pick(x_value,  y_value, pick_red_height) == True:
-                demo.place(redStore[0], redStore[1], redStore[2] + red_count*0.03)
+            #demo.pick_test(x_value,  y_value, pick_red_height)
+            if demo.pick_test(x_value,  y_value, pick_red_height) == True:
+                demo.place_test(redStore[0], redStore[1], redStore[2] + red_count*0.03, x_value, y_value )
                 red_count = red_count + 1
+                demo.move_to_camera(redStore[0], redStore[1])
         elif len(response.greenObjList):
             x_value = response.greenObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.greenObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
-            if demo.pick(x_value,  y_value, pick_green_height) == True:
-                demo.place(greenStore[0], greenStore[1], greenStore[2] + green_count*0.03)
+            if demo.pick_test(x_value,  y_value, pick_red_height) == True:
+                demo.place_test(greenStore[0], greenStore[1], greenStore[2] + green_count*0.03, x_value, y_value )
                 green_count = green_count + 1
+                demo.move_to_camera(greenStore[0], greenStore[1])
         elif len(response.blueObjList):
             x_value = response.blueObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.blueObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
-            if demo.pick(x_value,  y_value, pick_blue_height) == True:
-                demo.place(blueStore[0], blueStore[1], blueStore[2] + blue_count*0.03)
+            if demo.pick_test(x_value,  y_value, pick_red_height) == True:
+                demo.place_test(blueStore[0], blueStore[1], blueStore[2] + blue_count*0.03, x_value, y_value )
                 blue_count = blue_count + 1
+                demo.move_to_camera(blueStore[0], blueStore[1])
         elif len(response.blackObjList):
             x_value = response.blackObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.blackObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
-            if demo.pick(x_value,  y_value, pick_black_height) == True:
-                demo.place(blackStore[0], blackStore[1], blackStore[2] + black_count*0.03)
+            if demo.pick_test(x_value,  y_value, pick_red_height) == True:
+                demo.place_test(blackStore[0], blackStore[1], blackStore[2] + black_count*0.03, x_value, y_value )
                 black_count = black_count + 1
+                demo.move_to_camera(blackStore[0], blackStore[1])
+
 
         rate.sleep()
 
