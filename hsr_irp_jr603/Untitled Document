@@ -1,7 +1,0 @@
-1.运行上位机
-2.roslaunch object_color_detector object_detect_hsv.launch
-3.roslaunch object_color_detector camera_calibration_hsv.launch
-完成标定
-
-
-
