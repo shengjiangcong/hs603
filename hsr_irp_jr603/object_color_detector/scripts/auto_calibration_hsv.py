@@ -222,13 +222,20 @@ for point in calibration_points:
 
     # 运动到标定位姿
     arm.set_pose_target(target_pose, end_effector_link)
-    traj = arm.plan()
-    point_num = len(traj.joint_trajectory.points)
-    a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
-    while a < 0:
-          traj = arm.plan()
-          point_num = len(traj.joint_trajectory.points)
-          a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+    point_num = 0
+        #if (point_num == 0):
+         #  return False
+        #a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+    while (point_num == 0):
+              print '规划ing'
+              traj = arm.plan()
+              point_num = len(traj.joint_trajectory.points)
+              if (point_num > 0):
+                  a = traj.joint_trajectory.points[point_num - 1].positions[0]#a表示目标位子的joint0的角度
+                  if (a > 0):
+                     break
+                  a = 0
+                  point_num = 0
     print a
     arm.execute(traj)
     rospy.sleep(1)

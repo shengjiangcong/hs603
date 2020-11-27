@@ -44,7 +44,7 @@ pick_black_height = 0.98
 pick_prepare_height = 1.07
 
 #放置时候的准备高度
-place_prepare_height = 1.08
+place_prepare_height = 1.15
 
 red_count   = 0
 green_count = 0
@@ -111,14 +111,14 @@ class ProbotSortingDemo:
 ##############添加中间障碍#############
         middle_collision_id = 'middle_collision'
         self.scene.remove_world_object(middle_collision_id)
-        middle_collision_size = [0.22, 0.02, 0.27]
+        middle_collision_size = [0.22, 0.02, 0.22]
         middle_collision_pose = PoseStamped()
         middle_collision_pose.header.frame_id = self.reference_frame
         middle_collision_pose.pose.position.x = 0.405
         middle_collision_pose.pose.position.y = 0.0
         middle_collision_pose.pose.position.z = height_shuipin_collision + middle_collision_size[2]/2.0
         middle_collision_pose.pose.orientation.w = 1.0
-        #self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
+        self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
         rospy.sleep(1)
 
 ##############添加附着障碍#############
@@ -331,7 +331,7 @@ class ProbotSortingDemo:
                     point_num = len(plan.joint_trajectory.points)
                     #plan.joint_trajectory.points[1].time_from_start = plan.joint_trajectory.points[0].time_from_start 
                     for count in range(0,point_num - 1):
-                        print plan.joint_trajectory.points[count].time_from_start
+                        #print plan.joint_trajectory.points[count].time_from_start
                         if (plan.joint_trajectory.points[count].positions[0] < 0):
                            fraction = 0.0
                            print "plan反向，重新解算"
@@ -342,9 +342,9 @@ class ProbotSortingDemo:
             # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
             if fraction == 1.0:
                 #print "解算成功"
-                rospy.sleep(3)
+                rospy.sleep(0.3)
                 self.arm.execute(plan)
-                rospy.sleep(3)
+                rospy.sleep(0.3)
                 #print "运动执行成功"
             else:
                 rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
@@ -353,7 +353,7 @@ class ProbotSortingDemo:
             print "打开吸盘"
             self.io_control(True)
             
-            #self.addmukuai()   
+            self.addmukuai()   
             rospy.sleep(0.5)
             return True
 
@@ -367,9 +367,11 @@ class ProbotSortingDemo:
             wpose.position.y = pick_y
             wpose.position.z = pick_prepare_height
             waypoints.append(deepcopy(wpose))
-            wpose.position.x = home_point[0]
-            wpose.position.y = home_point[1]
+            #wpose.position.x = home_point[0]
+            wpose.position.y = home_point[1]+0.05
             wpose.position.z = home_point[2]
+            waypoints.append(deepcopy(wpose))
+            wpose.position.y = home_point[1]-0.05
             waypoints.append(deepcopy(wpose))
             wpose.position.x = x
             wpose.position.y = y
@@ -407,9 +409,9 @@ class ProbotSortingDemo:
             # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
             if fraction == 1.0:
                 #print "解算成功"
-                rospy.sleep(1)
+                rospy.sleep(0.3)
                 self.arm.execute(plan)
-                rospy.sleep(1)
+                rospy.sleep(0.3)
                 #print "运动执行成功"
             else:
                 rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
@@ -418,7 +420,7 @@ class ProbotSortingDemo:
             print "关闭吸盘"
             self.io_control(False)
             
-            #self.rmmukuai()   
+            self.rmmukuai()   
             rospy.sleep(0.5)
             return True
 
