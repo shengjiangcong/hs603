@@ -469,14 +469,14 @@ class ProbotSortingDemo:
             # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
             if fraction == 1.0:
                 #print "解算成功"
-                rospy.sleep(1)
+                rospy.sleep(0.3)
                 self.arm.execute(plan)
-                rospy.sleep(1)
+                rospy.sleep(0.2)
                 #print "运动执行成功"
             else:
                 rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
  
-            rospy.sleep(0.5)
+            rospy.sleep(0.2)
             return True        
 
 
