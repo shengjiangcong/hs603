@@ -50,6 +50,9 @@ black_count = 0
 
 io_serv = rospy.ServiceProxy('/set_robot_io', setRobotIo)
 
+
+
+
 class ProbotSortingDemo:
     def __init__(self):
         # Initialize ros and moveit 
@@ -71,7 +74,7 @@ class ProbotSortingDemo:
         self.arm.set_goal_position_tolerance(0.001)
         self.arm.set_goal_orientation_tolerance(0.001)
 
-        self.arm.set_max_velocity_scaling_factor (0.2)
+        self.arm.set_max_velocity_scaling_factor (1.0)
         #self.set_max_velocity_scaling_factor (0.2)
 #############添加水平障碍############
         rospy.sleep(1)
@@ -157,6 +160,14 @@ class ProbotSortingDemo:
         self.arm.set_named_target('home')
         self.arm.go()
         rospy.sleep(1)
+
+        try:
+            #a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
+            resp = io_serv(3, True, False)
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+        rospy.sleep(0.5)
+
     def addbox(self, size, pose, name):
         backward_wall_id = name
         self.scene.remove_world_object(backward_wall_id)
@@ -197,7 +208,7 @@ class ProbotSortingDemo:
 
     def moveTo(self, x, y, z): 
         # Create pose data 
-        rospy.sleep(0.3)          
+        rospy.sleep(0.5)          
         target_pose = PoseStamped()
         target_pose.header.frame_id = self.reference_frame
         target_pose.header.stamp = rospy.Time.now()     
@@ -228,7 +239,7 @@ class ProbotSortingDemo:
                      break
                   a = 0
                   point_num = 0
-        print a
+        #print a
 
         if len(traj.joint_trajectory.points) == 0:
             return False
@@ -267,20 +278,20 @@ class ProbotSortingDemo:
                      break
                   a = 0
                   point_num = 0
-        print a
+        #print a
 
         if len(traj.joint_trajectory.points) == 0:
             return False
 
         self.arm.execute(traj)
-        
+        #rospy.sleep(0.3)
         return True
     
     def pick(self, x, y, z):
         if self.moveTo(x, y, pick_prepare_height) == True:
-            print "Pick Once"
+            #print "Pick Once"
             self.moveTo(x, y, z)
-            print "打开吸盘"
+            #print "打开吸盘"
             self.io_control(True)
             
             self.addmukuai()       
@@ -289,24 +300,18 @@ class ProbotSortingDemo:
             self.moveTo(x, y, pick_prepare_height)
             
             return True
-        else:
-            print "Can not pick"
-            return False
         
     def place(self, x, y, z): 
         if self.moveToplace(x, y, place_prepare_height) == True:
-            print "Place Once"
+            #print "Place Once"
             self.moveToplace(x, y, z)
 
-            print "关闭吸盘"
+            #print "关闭吸盘"
             self.io_control(False)
 
             self.rmmukuai()  
 
             self.moveToplace(x, y, place_prepare_height)
-
-        else:
-            print "Can not place"
 
     def moveJoint(self, value):
         rospy.sleep(0.5)
@@ -324,19 +329,12 @@ class ProbotSortingDemo:
         rospy.sleep(0.5)
 
     def io_control(self, value):
-        rospy.wait_for_service('/set_robot_io')
-        try:
-            #a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
-            resp = io_serv(3, value, False)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
-        rospy.sleep(0.3)
         try:
             #a = rospy.ServiceProxy('/set_robot_io', setRobotIo)
             resp = io_serv(4, value, False)
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-        rospy.sleep(0.3)
+        rospy.sleep(0.5)
 
     def shutdown(self):
         # Exit
@@ -404,7 +402,7 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
         # 相机拍照位置
         demo.moveJoint(capture_joint)
-
+    
         # Get target
         rospy.wait_for_service('/object_detect')
         try:
@@ -426,28 +424,28 @@ if __name__ == "__main__":
             y_value = response.redObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_red_height) == True:
-                demo.place(redStore[0], redStore[1], redStore[2] + red_count*0.03)
+                demo.place(redStore[0], redStore[1], redStore[2] + (red_count%3)*0.03)
                 red_count = red_count + 1
         elif len(response.greenObjList):
             x_value = response.greenObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.greenObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_green_height) == True:
-                demo.place(greenStore[0], greenStore[1], greenStore[2] + green_count*0.03)
+                demo.place(greenStore[0], greenStore[1], greenStore[2] + (green_count%3)*0.03)
                 green_count = green_count + 1
         elif len(response.blueObjList):
             x_value = response.blueObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.blueObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_blue_height) == True:
-                demo.place(blueStore[0], blueStore[1], blueStore[2] + blue_count*0.03)
+                demo.place(blueStore[0], blueStore[1], blueStore[2] + (blue_count%3)*0.03)
                 blue_count = blue_count + 1
         elif len(response.blackObjList):
             x_value = response.blackObjList[0].position.y * reg_x[0] + reg_x[1]
             y_value = response.blackObjList[0].position.x * reg_y[0] + reg_y[1]
             print "Pick Position: %f, %f"%(x_value, y_value)
             if demo.pick(x_value,  y_value, pick_black_height) == True:
-                demo.place(blackStore[0], blackStore[1], blackStore[2] + black_count*0.03)
+                demo.place(blackStore[0], blackStore[1], blackStore[2] + (black_count%3)*0.03)
                 black_count = black_count + 1
 
         rate.sleep()
