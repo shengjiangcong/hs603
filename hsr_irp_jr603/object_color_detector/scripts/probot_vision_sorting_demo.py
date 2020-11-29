@@ -29,8 +29,8 @@ capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
 
 #拍照识别位置的六轴角度
-capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5558713674545288]
-
+#capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5558713674545288]
+capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5258713674545288]
 #四种物品抓取时候的各自高度
 pick_red_height   = 0.98
 pick_green_height = 0.98
@@ -354,8 +354,8 @@ if __name__ == "__main__":
 
     print "Probot sorting demo start."
     demo = ProbotSortingDemo()
-    #demo.moveJoint(capture_joint)
-    #demo.shutdown()
+    demo.moveJoint(capture_joint)
+    demo.shutdown()
 
 ##########添加两个盒子###################
 

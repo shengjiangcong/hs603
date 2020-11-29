@@ -42,7 +42,7 @@ capture_point = Point(0.38876, 0, 1.17)
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) #Quaternion(0, 0, 0, 1)
 
 #拍照识别位置的六轴角度
-capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5558713674545288]
+capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5258713674545288]
 
 # 初始化move_group的API
 moveit_commander.roscpp_initialize(sys.argv)
@@ -319,4 +319,3 @@ arm.go()
 # 关闭并退出moveit
 moveit_commander.roscpp_shutdown()
 moveit_commander.os._exit(0)
-

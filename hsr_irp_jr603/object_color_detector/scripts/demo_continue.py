@@ -32,13 +32,13 @@ capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
 home_point = [0.28685, 0, 1.2327]
 
 #拍照识别位置的六轴角度
-capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5558713674545288]
+capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5258713674545288]
 
 #四种物品抓取时候的各自高度
-pick_red_height   = 0.98
-pick_green_height = 0.98
-pick_blue_height  = 0.98
-pick_black_height = 0.98
+pick_red_height   = 0.975
+pick_green_height = 0.975
+pick_blue_height  = 0.975
+pick_black_height = 0.975
 
 #抓取时候的准备高度
 pick_prepare_height = 1.07
@@ -189,7 +189,7 @@ class ProbotSortingDemo:
         rospy.sleep(0.3)
         tool4_id = 'tool4'
         #self.scene.remove_attached_object(self.end_effector_link, tool4_id)
-        tool4_size = [0.02, 0.02, 0.02]
+        tool4_size = [0.03, 0.03, 0.03]
         tool4_pose = PoseStamped()
         tool4_pose.header.frame_id = self.end_effector_link
         tool4_pose.pose.position.x = 0.0
@@ -240,9 +240,9 @@ class ProbotSortingDemo:
             # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
             if fraction == 1.0:
                 #print "解算成功"
-                rospy.sleep(0.3)
+                #rospy.sleep(0.3)
                 self.arm.execute(plan)
-                rospy.sleep(0.7)
+                rospy.sleep(0.5)
                 #print "运动执行成功"
             else:
                 rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
@@ -298,9 +298,9 @@ class ProbotSortingDemo:
             # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
             if fraction == 1.0:
                 #print "解算成功"
-                rospy.sleep(0.3)
+                #rospy.sleep(0.3)
                 self.arm.execute(plan)
-                rospy.sleep(0.7)
+                rospy.sleep(0.5)
                 #print "运动执行成功"
             else:
                 rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
@@ -309,7 +309,7 @@ class ProbotSortingDemo:
             self.io_control(False)
             rospy.sleep(0.5)     
             #self.rmmukuai()   
-            rospy.sleep(1)
+            #rospy.sleep(1)
             return True
 
     def move_to_camera(self, place_x, place_y):
@@ -349,9 +349,9 @@ class ProbotSortingDemo:
             # 如果路径规划成功（覆盖率100%）,则开始控制机械臂运动
             if fraction == 1.0:
                 #print "解算成功"
-                rospy.sleep(0.3)
+                #rospy.sleep(0.3)
                 self.arm.execute(plan)
-                rospy.sleep(0.7)
+                rospy.sleep(0.5)
                 #print "运动执行成功"
             else:
                 rospy.loginfo("Path planning failed with only " + str(fraction) + " success after " + str(maxtries) + " attempts.")  
