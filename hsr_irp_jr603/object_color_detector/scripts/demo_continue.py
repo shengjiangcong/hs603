@@ -29,7 +29,7 @@ blackStore = [box2_x - 0.0725 + 0.055, box2_y + 0.055, 0.98]
 
 capture_point = [0.39464, 0.2451, 1.1839]
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) # Quaternion(0, 0, 0, 1)
-home_point = [0.28685, 0, 1.2327]
+home_point = [0.28685, 0.05, 1.2327]
 
 #拍照识别位置的六轴角度
 capture_joint = [0.5559790730476379, -0.8841944336891174, 2.39966082572937, -0.0009109065285883844, 1.624731421470642, 0.5258713674545288]
@@ -114,7 +114,7 @@ class ProbotSortingDemo:
         middle_collision_pose = PoseStamped()
         middle_collision_pose.header.frame_id = self.reference_frame
         middle_collision_pose.pose.position.x = 0.405
-        middle_collision_pose.pose.position.y = 0.0
+        middle_collision_pose.pose.position.y = home_point[1]
         middle_collision_pose.pose.position.z = height_shuipin_collision + middle_collision_size[2]/2.0
         middle_collision_pose.pose.orientation.w = 1.0
         self.scene.add_box(middle_collision_id, middle_collision_pose, middle_collision_size)
@@ -403,18 +403,18 @@ if __name__ == "__main__":
 
 ##########添加两个盒子###################
 
-    size1_L = [0.23, 0.01, 0.075]
-    size1_R = [0.23, 0.01, 0.075]
-    size1_F = [0.01, 0.23, 0.075]
-    size1_B = [0.01, 0.23, 0.075]
+    size1_L = [0.24, 0.01, 0.075]
+    size1_R = [0.24, 0.01, 0.075]
+    size1_F = [0.01, 0.24, 0.075]
+    size1_B = [0.01, 0.24, 0.075]
 
     box1_x = 0.3925
     box1_y = 0.25
 
-    pose1_L = [box1_x, box1_y-0.115, height_shuipin_collision + size1_L[2]/2.0]
-    pose1_R = [box1_x, box1_y+0.115, height_shuipin_collision + size1_R[2]/2.0]
-    pose1_F = [box1_x-0.115, box1_y, height_shuipin_collision + size1_F[2]/2.0]
-    pose1_B = [box1_x+0.115, box1_y, height_shuipin_collision + size1_B[2]/2.0]
+    pose1_L = [box1_x, box1_y-0.12, height_shuipin_collision + size1_L[2]/2.0]
+    pose1_R = [box1_x, box1_y+0.12, height_shuipin_collision + size1_R[2]/2.0]
+    pose1_F = [box1_x-0.12, box1_y, height_shuipin_collision + size1_F[2]/2.0]
+    pose1_B = [box1_x+0.12, box1_y, height_shuipin_collision + size1_B[2]/2.0]
     demo.addbox(size1_L, pose1_L, 'box1_L')  
     demo.addbox(size1_R, pose1_R, 'box1_R') 
     demo.addbox(size1_F, pose1_F, 'box1_F') 

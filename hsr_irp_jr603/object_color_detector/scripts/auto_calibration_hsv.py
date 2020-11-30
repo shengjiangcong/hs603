@@ -31,8 +31,8 @@ height_shuipin_collision = 0.8
 # 定义标定位姿点 左上角是0.22,0.15
 calibration_points_z = 0.99
 calibration_points = []
-calibration_points.append(Point(0.24, 0.18,    calibration_points_z))
-calibration_points.append(Point(0.24, 0.30,  calibration_points_z))
+calibration_points.append(Point(0.25, 0.18,    calibration_points_z))
+calibration_points.append(Point(0.25, 0.30,  calibration_points_z))
 calibration_points.append(Point(0.38, 0.18, calibration_points_z))
 calibration_points.append(Point(0.38, 0.30,  calibration_points_z))
 calibration_points.append(Point(0.31, 0.24,    calibration_points_z))

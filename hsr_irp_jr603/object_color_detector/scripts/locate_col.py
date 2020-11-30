@@ -45,7 +45,7 @@ calibration_points.append(Point(0.35, -0.1,  calibration_points_z))
 calibration_points.append(Point(0.30, -0.1,    calibration_points_z))
 
 # 定义拍照位姿
-capture_point = Point(0.22, 0, 1.20)#0.22,0.15,1.02，
+capture_point = Point(0.22, 0.05, 1.20)#0.22,0.15,1.02，
 capture_quaternion = Quaternion(0.70711, 0.70711, 0, 0) #Quaternion(0, 0, 0, 1)
 
 # 初始化move_group的API
